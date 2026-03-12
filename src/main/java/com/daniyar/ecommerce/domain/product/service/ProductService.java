@@ -3,6 +3,7 @@ package com.daniyar.ecommerce.domain.product.service;
 
 import com.daniyar.ecommerce.domain.product.dto.ProductCreateRequest;
 import com.daniyar.ecommerce.domain.product.dto.ProductResponse;
+import com.daniyar.ecommerce.domain.product.dto.ProductSearchRequest;
 import com.daniyar.ecommerce.domain.product.entity.Product;
 import com.daniyar.ecommerce.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -90,5 +91,17 @@ public class ProductService {
 
     public void deleteProduct(Long productId) {
         productRepository.deleteById(productId);
+    }
+
+    public Page<ProductResponse> searchProducts(ProductSearchRequest request, Pageable pageable) {
+        Page<Product> products = productRepository.search(request, pageable);
+
+        return products.map(product -> new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock()
+        ));
     }
 }

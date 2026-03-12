@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-
-public interface ProductRepository extends JpaRepository<Product, Long> {
-
+public interface ProductRepository extends JpaRepository<Product, Long>, ProductRepositoryCustom {
     Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 //    Page<Product> findByNameContaining(String name);
 //    Page<Product> findByPriceGreaterThan(BigDecimal price);

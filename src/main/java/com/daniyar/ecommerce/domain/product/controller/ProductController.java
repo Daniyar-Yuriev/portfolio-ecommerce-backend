@@ -1,5 +1,6 @@
 package com.daniyar.ecommerce.domain.product.controller;
 
+import com.daniyar.ecommerce.domain.product.dto.ProductSearchRequest;
 import com.daniyar.ecommerce.global.response.ApiResponse;
 import com.daniyar.ecommerce.domain.product.dto.ProductCreateRequest;
 import com.daniyar.ecommerce.domain.product.dto.ProductResponse;
@@ -31,7 +32,12 @@ public class ProductController {
             return productService.getProducts(pageable);
         }
     }
-
+    @GetMapping("/search")
+    public Page<ProductResponse> searchProducts(
+            ProductSearchRequest request,
+            Pageable pageable) {
+        return productService.searchProducts(request, pageable);
+    }
     @PostMapping
     public ProductResponse createProduct(
             @Valid @RequestBody ProductCreateRequest request) {
