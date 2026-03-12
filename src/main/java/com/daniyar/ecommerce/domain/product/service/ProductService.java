@@ -66,4 +66,29 @@ public class ProductService {
     }
 
 
+    public ProductResponse updateProduct(Long productId, ProductCreateRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+        product.setStock(request.stock());
+
+        productRepository.save(product);
+
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getStock()
+        );
+    }
+
+
+    public void deleteProduct(Long productId) {
+        productRepository.deleteById(productId);
+    }
 }

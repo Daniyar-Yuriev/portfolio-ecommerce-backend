@@ -4,6 +4,7 @@ import com.daniyar.ecommerce.global.response.ApiResponse;
 import com.daniyar.ecommerce.domain.product.dto.ProductCreateRequest;
 import com.daniyar.ecommerce.domain.product.dto.ProductResponse;
 import com.daniyar.ecommerce.domain.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,8 +34,20 @@ public class ProductController {
 
     @PostMapping
     public ProductResponse createProduct(
-            @RequestBody ProductCreateRequest request
-    ) {
+            @Valid @RequestBody ProductCreateRequest request) {
+
         return productService.createProduct(request);
+    }
+
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(
+            @PathVariable Long id,
+            @RequestBody ProductCreateRequest request) {
+        return productService.updateProduct(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
     }
 }
