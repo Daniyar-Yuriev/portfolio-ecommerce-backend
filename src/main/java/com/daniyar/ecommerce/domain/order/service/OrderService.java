@@ -1,5 +1,9 @@
 package com.daniyar.ecommerce.domain.order.service;
 
+import com.daniyar.ecommerce.domain.cart.entity.Cart;
+import com.daniyar.ecommerce.domain.cart.entity.CartItem;
+import com.daniyar.ecommerce.domain.cart.repository.CartItemRepository;
+import com.daniyar.ecommerce.domain.cart.repository.CartRepository;
 import com.daniyar.ecommerce.domain.customer.entity.Customer;
 import com.daniyar.ecommerce.domain.customer.repository.CustomerRepository;
 import com.daniyar.ecommerce.domain.order.entity.Order;
@@ -21,46 +25,74 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
 
+
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final CustomerRepository customerRepository;
-    private final OrderItemRepository orderItemRepository;
 
-    // 주문 생성
+
+    public Order getOrdersByCustomer(Long customerId) {
+        return orderRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new RuntimeException("Order not found for customer"));
+    }
+
+
+    // Create order from cart items
     @Transactional
-    public Order createOrder(Long customerId, List<Long> productIds, List<Integer> quantities) {
+    public Order createOrder(Long customerId) {
 
-        // 고객 확인
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        // Retrieve cart for the customer
+        Cart cart = cartRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         Order order = new Order();
-        order.setOrderDate(LocalDateTime.now());
-        order.setCustomer(customer);
-        order.setStatus(OrderStatus.ORDERED);
+//        order.setCustomerId(customerId);
 
-        // 주문 항목 추가
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (int i = 0; i < productIds.size(); i++) {
-            Product product = productRepository.findById(productIds.get(i))
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+        // Convert CartItems to OrderItems
+        for (CartItem cartItem : cart.getCartItems()) {
+            Product product = cartItem.getProduct();
 
             OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
             orderItem.setProduct(product);
-            orderItem.setQuantity(quantities.get(i));
+            orderItem.setQuantity(cartItem.getQuantity());
             orderItem.setPrice(product.getPrice());
 
-            orderItems.add(orderItem);
+            order.getOrderItems().add(orderItem);
         }
 
-        order.setOrderItems(orderItems);
+        // Calculate total amount of the order
+        order.calculateTotalAmount();
+
+        // Save the order
         orderRepository.save(order);
 
-        // 주문 항목도 저장
-        for (OrderItem orderItem : orderItems) {
-            orderItemRepository.save(orderItem);
-        }
+        // Optionally, remove items from cart after the order is placed
+        cartItemRepository.deleteAll(cart.getCartItems());
 
         return order;
+    }
+
+    @Transactional
+    public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setStatus(status);  // Update the status
+        return orderRepository.save(order);  // Save the updated order
+    }
+
+    @Transactional
+    public Order cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only orders in PENDING status can be cancelled");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED); // Update status to CANCELLED
+        return orderRepository.save(order);  // Save the updated order
     }
 }

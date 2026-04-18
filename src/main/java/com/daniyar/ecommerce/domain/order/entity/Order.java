@@ -4,16 +4,13 @@ import com.daniyar.ecommerce.domain.customer.entity.Customer;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-@Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Entity
 @Table(name = "orders")
 public class Order {
 
@@ -21,17 +18,31 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime orderDate;
+    // Customer ID that owns the order
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", referencedColumnName = "id")
+    private Customer customer;  // Many orders can belong to one customer
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private LocalDateTime orderDate;  // Order creation date
 
-    @OneToMany(mappedBy = "order")
-    private List<OrderItem> orderItems = new ArrayList<>();
+    private BigDecimal totalAmount;  // Total amount for the order
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrderStatus status;  // Order status (e.g., PENDING, CONFIRMED)
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems = new ArrayList<>();  // List of items in the order
 
+    // Calculate the total amount of the order based on the order items
+    public void calculateTotalAmount() {
+        this.totalAmount = orderItems.stream()
+                .map(OrderItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // Set order date before persist
+    @PrePersist
+    public void prePersist() {
+        this.orderDate = LocalDateTime.now();
+    }
 }

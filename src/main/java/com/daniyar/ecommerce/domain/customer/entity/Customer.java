@@ -8,12 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Entity
 @Table(name = "customers")
 public class Customer {
 
@@ -25,7 +22,7 @@ public class Customer {
     private String email;
     private String phone;
 
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders = new ArrayList<>();  // List of orders for the customer
 
-    @OneToMany(mappedBy = "customer")
-    private List<Order> orders = new ArrayList<>();
 }

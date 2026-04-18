@@ -21,18 +21,18 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "customer_id")
-    private Customer customer;
+    // Owner of the cart (temporary user id)
+    private Long customerId;
 
-    @OneToMany(mappedBy = "cart")
+    // Items in the cart
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 
-    private LocalDateTime createdDate;
-
+    // Cart creation time
+    private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        createdDate = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

@@ -2,13 +2,13 @@ package com.daniyar.ecommerce.domain.order.controller;
 
 import com.daniyar.ecommerce.domain.order.dto.OrderRequest;
 import com.daniyar.ecommerce.domain.order.entity.Order;
+import com.daniyar.ecommerce.domain.order.entity.OrderStatus;
 import com.daniyar.ecommerce.domain.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,13 +17,24 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // create Order
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) {
-        // get customerId, productIds, quantities from request and create OrderRequest
-        Order order = orderService.createOrder(orderRequest.getCustomerId(),
-                orderRequest.getProductIds(),
-                orderRequest.getQuantities());
-        return ResponseEntity.ok(order);
+    // Place an order (convert cart to order)
+    @PostMapping("/create/{customerId}")
+    public Order createOrder(@PathVariable Long customerId) {
+        return orderService.createOrder(customerId);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public Order changeOrderStatus(@PathVariable Long orderId, @RequestBody OrderStatus status) {
+        return orderService.updateOrderStatus(orderId, status);  // Call service to update the order status
+    }
+
+    @PutMapping("/{orderId}/cancel")
+    public Order cancelOrder(@PathVariable Long orderId) {
+        return orderService.cancelOrder(orderId);  // Call service to cancel the order
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public Order getOrdersByCustomer(@PathVariable Long customerId) {
+        return orderService.getOrdersByCustomer(customerId);  // Fetch orders by customer ID
     }
 }

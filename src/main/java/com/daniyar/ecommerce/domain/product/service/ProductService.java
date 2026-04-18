@@ -7,6 +7,8 @@ import com.daniyar.ecommerce.domain.product.dto.ProductSearchRequest;
 import com.daniyar.ecommerce.domain.product.entity.Product;
 import com.daniyar.ecommerce.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,11 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    @Cacheable(value = "products", key = "#productId")
+    public Product getProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
     public Page<ProductResponse> getProducts(Pageable pageable) {
 
         Page<Product> products = productRepository.findAll(pageable);
@@ -67,6 +74,8 @@ public class ProductService {
     }
 
 
+
+    @CacheEvict(value = "products", key = "#product.id")
     public ProductResponse updateProduct(Long productId, ProductCreateRequest request) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));

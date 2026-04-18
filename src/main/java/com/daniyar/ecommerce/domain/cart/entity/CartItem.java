@@ -19,19 +19,18 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    // Cart reference
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
-    private Cart cart;  // cart
+    private Cart cart;
 
-    @ManyToOne
+    // Product reference
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
-    private Product product;  // products in  cart
+    private Product product;
 
-    private Integer quantity;  // quantity of product
+    // Quantity of product in cart
+    private Integer quantity;
+
     private BigDecimal price;
-
-    // total price
-    public BigDecimal getTotalPrice() {
-        return price.multiply(new BigDecimal(quantity));
-    }
 }
